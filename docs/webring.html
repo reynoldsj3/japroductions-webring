@@ -1,0 +1,135 @@
+<html>
+<head>
+  <style>
+    .webring-container {
+      background-color: black;
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-family: Arial, sans-serif;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .webring-logo {
+      width: 100%;
+      max-width: 600px;
+      border: none;
+    }
+    .ownership-text {
+      font-size: 16px;
+      margin: 10px 0;
+      text-shadow: 1px 1px 2px white;
+    }
+    .navigation-buttons {
+      font-size: 16px;
+      margin-top: 10px;
+    }
+    .nav-button {
+      color: #ff0000;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 5px 10px;
+      pointer-events: none;
+    }
+    .nav-button:hover, .nav-button:focus {
+      text-decoration: underline;
+      outline: 2px solid #ff0000;
+    }
+  </style>
+</head>
+<body>
+  <div class="webring-container">
+    <a href="MASTER_WEBRING_URL" target="_blank">
+      <img src="https://drive.google.com/uc?export=download&id=1Y4_rStr3CFeeolgnAcrsB8QNke0yxKzx" alt="J & A Productions Webring" class="webring-logo">
+    </a>
+    <p class="ownership-text">Want to join the <a href="https://sites.google.com/view/japroductionswebring/home" target="_blank">J&A Productions</a> webring?</p>
+    <div class="navigation-buttons">
+      <a href="#" onclick="goPrevious()" class="nav-button">Previous</a> |
+      <a href="#" onclick="goRandom()" class="nav-button">Random</a> |
+      <a href="#" onclick="goNext()" class="nav-button">Next</a>
+    </div>
+  </div>
+  <script>
+    let sites = [];
+    
+    function fetchSites() {
+      const params = new URLSearchParams(window.location.search);
+      const currentUrl = params.get('currentUrl') || '';
+      
+      fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vRiBuYqwC61qWK8-4aEAcBHuobz-ZZcS5wmGU3dtT6COarLKa6JinaWjxUSCQpEnvuxc_MQrxknUPRy/pub?output=csv')
+        .then(response => response.text())
+        .then(data => {
+          let lines = data.split('\n');
+          sites = lines.slice(1).filter(line => {
+            let url = line.split(',')[1];
+            return url && url.trim() !== currentUrl.trim();
+          }).map(line => {
+            let [, url] = line.split(',');
+            return { name: '', url: url.trim() };
+          });
+          checkIfReady();
+        });
+    }
+
+    fetchSites();
+
+    let currentIndex = -1;
+
+    function goPrevious() {
+      if (sites.length > 0) {
+        do {
+          if (currentIndex === -1 || currentIndex === 0) {
+            currentIndex = sites.length - 1;
+          } else {
+            currentIndex--;
+          }
+        } while (sites[currentIndex].url === (new URLSearchParams(window.location.search).get('currentUrl') || '').trim());
+        
+        window.open(sites[currentIndex].url, '_blank');
+      } else {
+        console.log('No sites available to navigate to. Please try again in a moment.');
+      }
+    }
+
+    function goRandom() {
+      if (sites.length > 0) {
+        let randomIndex;
+        do {
+          randomIndex = Math.floor(Math.random() * sites.length);
+        } while (sites[randomIndex].url === (new URLSearchParams(window.location.search).get('currentUrl') || '').trim());
+        
+        window.open(sites[randomIndex].url, '_blank');
+      } else {
+        console.log('No sites available for random selection. Please try again in a moment.');
+      }
+    }
+
+    function goNext() {
+      if (sites.length > 0) {
+        do {
+          if (currentIndex === -1 || currentIndex === sites.length - 1) {
+            currentIndex = 0;
+          } else {
+            currentIndex++;
+          }
+        } while (sites[currentIndex].url === (new URLSearchParams(window.location.search).get('currentUrl') || '').trim());
+        
+        window.open(sites[currentIndex].url, '_blank');
+      } else {
+        console.log('No sites available to navigate to. Please try again in a moment.');
+      }
+    }
+
+    function checkIfReady() {
+      if (sites.length > 0) {
+        document.querySelectorAll('.nav-button').forEach(button => {
+          button.style.pointerEvents = 'auto';
+        });
+      } else {
+        setTimeout(checkIfReady, 100);
+      }
+    }
+  </script>
+</body>
+</html>
